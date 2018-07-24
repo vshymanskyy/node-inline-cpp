@@ -48,6 +48,8 @@ The first time you run the script, it takes longer time to execute.
 For each inline block of code, a native module will be generated, compiled with `node-gyp` and loaded dynamically.  
 The next time you run the script, it will reuse previous build results (unless you change the inline C++ code). The build results are cached.  
 
+For more C++ code examples, see [node-addon-api](https://github.com/nodejs/node-addon-api#examples)
+
 ## Disclaimer
 
 This is only a prototype. I created this to check the geneal concept.  
