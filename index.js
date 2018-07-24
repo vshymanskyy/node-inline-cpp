@@ -2,6 +2,8 @@ const fs = require('fs');
 const crypto = require('crypto');
 const { execSync } = require('child_process');
 const paths = require('env-paths')('nodejs-inline-cpp', {suffix: ''});
+const findParentDir = require('find-parent-dir');
+const debug = require('debug')('inline-cpp');
 
 function generate_module(code) {
   let body =
@@ -25,10 +27,13 @@ NODE_API_MODULE(addon, Init)
   const modNode = `${modPath}/build/Release/${modName}.node`;
 
   if (fs.existsSync(modNode)) {
+    debug('Loading cached', modPath);
     try {
       return require(modNode).func;
     } catch(e) {}
   }
+
+  let nodeAddon = require.resolve('node-addon-api');
 
   let binding = {
     "targets": [
@@ -38,10 +43,10 @@ NODE_API_MODULE(addon, Init)
           "module.cpp"
         ],
         "include_dirs": [
-          `<!@(node -p "require('${__dirname}/node_modules/node-addon-api').include")`
+          `<!@(node -p "require('${nodeAddon}').include")`
         ],
         "dependencies": [
-          `<!(node -p "require('${__dirname}/node_modules/node-addon-api').gyp")`
+          `<!(node -p "require('${nodeAddon}').gyp")`
         ],
         "cflags!": ["-fno-exceptions"],
         "cflags_cc!": ["-fno-exceptions"],
@@ -49,8 +54,8 @@ NODE_API_MODULE(addon, Init)
       }
     ]
   };
-  
-  console.log('Building', modPath);
+
+  debug('Building', modPath);
 
   try {
     fs.mkdirSync(paths.cache);
@@ -62,10 +67,13 @@ NODE_API_MODULE(addon, Init)
   fs.writeFileSync(`${modPath}/module.cpp`, body);
   fs.writeFileSync(`${modPath}/binding.gyp`, JSON.stringify(binding, null, 2));
 
-  execSync(`${__dirname}/node_modules/.bin/node-gyp configure --directory=${modPath}`, {stdio: [null,null,null]})
+  let nodeGyp = require.resolve('node-gyp');
+  nodeGyp = findParentDir.sync(nodeGyp, 'package.json');
+
+  execSync(`node ${nodeGyp}/bin/node-gyp.js configure --directory=${modPath}`, {stdio: [null,null,null]})
 
   try {
-    execSync(`${__dirname}/node_modules/.bin/node-gyp build --directory=${modPath}`, {stdio: [null,null,null]})
+    execSync(`node ${nodeGyp}/bin/node-gyp.js build --directory=${modPath}`, {stdio: [null,null,null]})
     return require(modNode).func;
   } catch (e) {
     throw new Error('C++ build failed')
