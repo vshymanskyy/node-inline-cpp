@@ -60,3 +60,7 @@ You're welcome to contribute - here are some ideas:
 - [ ] Parse/Find all finctions in the block of code, add them to exports
 - [ ] Create advanced usage examples
 - [ ] ...
+
+## Debugging
+
+You can enable some basic debug output by setting env. variable:`DEBUG=inline-cpp`
