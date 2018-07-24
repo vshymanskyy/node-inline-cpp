@@ -1,12 +1,4 @@
-# node-inline-cpp
-Inline C++ with Node.js
-
-## Usage
-
-```js
-// test.js
-
-const compile = require('inline-cpp');
+const compile = require('../');
 
 const Hello = compile `
   String func(const CallbackInfo& info) {
@@ -21,10 +13,4 @@ const World = compile `
 `
 
 console.log(Hello(), World())
-```
-
-```sh
-➜ node test.js
-Hello World!
-```
 
