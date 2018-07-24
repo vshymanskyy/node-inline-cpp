@@ -52,15 +52,16 @@ For more C++ code examples, see [node-addon-api](https://github.com/nodejs/node-
 
 ## Disclaimer
 
-This is only a prototype. I created this to check the geneal concept.  
-You're welcome to contribute - here are some ideas:
+This is just a prototype. I created this to check the general concept.  
+You're welcome to contribute! Here are some ideas:
 
 - [ ] Use node-gyp directly, instead of invoking `node node-gyp.js`
 - [ ] Improve error handling/reporting
 - [ ] Parse/Find all finctions in the block of code, add them to exports
 - [ ] Create advanced usage examples
+- [ ] Cleanup unused modules from cache periodically
 - [ ] ...
 
 ## Debugging
 
-You can enable some basic debug output by setting env. variable:`DEBUG=inline-cpp`
+You can enable some basic debug output by setting env. variable: `DEBUG=inline-cpp`
