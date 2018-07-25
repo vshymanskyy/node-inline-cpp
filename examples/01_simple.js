@@ -7,4 +7,4 @@ const hello = InlineCPP `
   }
 `
 
-console.log(hello())
+console.log(hello()); // Hello world!

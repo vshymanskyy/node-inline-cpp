@@ -17,4 +17,4 @@ const mod = InlineCPP(`
   }
 `);
 
-console.log(mod.alice(), 'and', mod.bob())
+console.log(mod.alice(), 'and', mod.bob()); // Alice and Bob

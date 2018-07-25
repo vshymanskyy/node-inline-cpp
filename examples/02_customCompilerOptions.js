@@ -9,4 +9,4 @@ const func = compile(`
   }
 `)
 
-console.log(func())
+console.log(func()); // Bazinga!
