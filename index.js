@@ -39,18 +39,23 @@ function generateModule(code, opts) {
 
   opts = opts || {};
 
+  // Detect if init code needs to be included
+  let init = code.includes("Object Init(") ? "" :
+`
+Object Init(Env env, Object exports) {
+  exports.Set("func", Function::New(env, func));
+  
+  return exports;
+}
+`;
+
   let body =
 `
 #include <napi.h>
 using namespace Napi;
 
 ${code}
-
-Object Init(Env env, Object exports) {
-  exports.Set("func", Function::New(env, func));
-  
-  return exports;
-}
+${init}
 
 NODE_API_MODULE(addon, Init)
 `;
@@ -64,7 +69,11 @@ NODE_API_MODULE(addon, Init)
   if (fs.existsSync(modNode)) {
     debug('Loading cached', modPath);
     try {
-      return require(modNode).func;
+      if (init) {
+        return require(modNode).func;
+      } else {
+        return require(modNode);
+      }
     } catch(e) {}
   }
 
@@ -123,7 +132,11 @@ NODE_API_MODULE(addon, Init)
 
   try {
     execSync(`node "${nodeGyp}" build --directory="${modPath}"`, execOpts)
-    return require(modNode).func;
+    if (init) {
+      return require(modNode).func;
+    } else {
+      return require(modNode);
+    }
   } catch (e) {
     throw new Error('C++ build failed')
   }
