@@ -1,3 +1,4 @@
+const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -21,7 +22,9 @@ function findBuildDeps() {
   debug('Using node-gyp:', nodeGyp);
   debug('Using node-addon-api:', nodeAddon);
   
-  nodeAddon = nodeAddon.replace(/[\\$'"]/g, "\\$&")
+  if (os.platform() === 'win32') {
+    nodeAddon = nodeAddon.replace(/[\\$'"]/g, "\\$&")
+  }
 }
 
 function generate_module(code) {
