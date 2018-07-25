@@ -13,7 +13,7 @@ Inline C++ with Node.js
 ```sh
 npm install --save inline-cpp
 ```
-or
+or install it globally (it works with Node.js REPL):
 ```sh
 npm install -g inline-cpp
 ```
