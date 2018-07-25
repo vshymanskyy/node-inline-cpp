@@ -6,6 +6,7 @@ const { execSync } = require('child_process');
 const paths = require('env-paths')('nodejs-inline-cpp', {suffix: ''});
 const findParentDir = require('find-parent-dir');
 const debug = require('debug')('inline-cpp');
+const _ = require('lodash');
 
 let nodeAddon, nodeGyp;
 
@@ -22,12 +23,22 @@ function findBuildDeps() {
   debug('Using node-gyp:', nodeGyp);
   debug('Using node-addon-api:', nodeAddon);
   
+  // For some reason, windows needs path to be escaped
   if (os.platform() === 'win32') {
     nodeAddon = nodeAddon.replace(/[\\$'"]/g, "\\$&")
   }
 }
 
-function generate_module(code) {
+function optsMerge(objValue, srcValue) {
+  if (_.isArray(objValue)) {
+    return objValue.concat(srcValue);
+  }
+}
+
+function generateModule(code, opts) {
+
+  opts = opts || {};
+
   let body =
 `
 #include <napi.h>
@@ -44,7 +55,9 @@ Object Init(Env env, Object exports) {
 NODE_API_MODULE(addon, Init)
 `;
 
-  const modName = 'm_' + crypto.createHash('sha1').update(body).digest("hex");
+  // Generate a hash using actual code and build options
+  const modName = 'm_' + crypto.createHash('sha1').update(JSON.stringify(opts)).update(body).digest("hex");
+
   const modPath = path.join(paths.cache, modName);
   const modNode = path.join(modPath, 'build', 'Release', modName+'.node');
 
@@ -57,24 +70,34 @@ NODE_API_MODULE(addon, Init)
 
   findBuildDeps();
 
+  let gypTarget = {
+    "target_name": modName,
+    "sources": [
+      "module.cpp"
+    ],
+    "include_dirs": [
+      `<!@(node -p "require('${nodeAddon}').include")`
+    ],
+    "dependencies": [
+      `<!(node -p "require('${nodeAddon}').gyp")`
+    ],
+    "cflags!": ["-fno-exceptions"],
+    "cflags_cc!": ["-fno-exceptions"],
+    "xcode_settings": {
+      "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
+      "CLANG_CXX_LIBRARY": "libc++",
+      "MACOSX_DEPLOYMENT_TARGET": "10.7",
+    },
+    "msvs_settings": {
+      "VCCLCompilerTool": { "ExceptionHandling": 1 },
+    },
+    "defines": ["NAPI_CPP_EXCEPTIONS"],
+  }
+  
+  gypTarget = _.mergeWith(gypTarget, opts, optsMerge)
+
   let binding = {
-    "targets": [
-      {
-        "target_name": modName,
-        "sources": [
-          "module.cpp"
-        ],
-        "include_dirs": [
-          `<!@(node -p "require('${nodeAddon}').include")`
-        ],
-        "dependencies": [
-          `<!(node -p "require('${nodeAddon}').gyp")`
-        ],
-        "cflags!": ["-fno-exceptions"],
-        "cflags_cc!": ["-fno-exceptions"],
-        "defines": ["NAPI_CPP_EXCEPTIONS"]
-      }
-    ]
+    "targets": [ gypTarget ]
   };
 
   debug('Building', modPath);
@@ -106,16 +129,34 @@ NODE_API_MODULE(addon, Init)
   }
 }
 
-module.exports = function(obj) {
-  let compileString;
-  // Handle tagged template invocation
-  if (Array.isArray(obj) && Array.isArray(obj.raw)) {
-    let interpVals = [].concat(Array.prototype.slice.call(arguments)).slice(1);
-    compileString = obj[0];
-    for (let i = 0, l = interpVals.length; i < l; i++) {
-      compileString += '' + interpVals[i] + obj[i + 1];
+function compiler(opts) {
+
+  return function(obj) {
+    let compileString;
+    // Handle tagged template invocation
+    if (Array.isArray(obj) && Array.isArray(obj.raw)) {
+      let interpVals = [].concat(Array.prototype.slice.call(arguments)).slice(1);
+      compileString = obj[0];
+      for (let i = 0, l = interpVals.length; i < l; i++) {
+        compileString += '' + interpVals[i] + obj[i + 1];
+      }
+    } else if (typeof obj === 'string' || obj instanceof String) {
+      compileString = obj;
     }
+    
+    if (compileString) {
+      return generateModule(compileString, opts);
+    }
+    
+    throw new Error('Wrong arguments for inline-cpp')
+  }
+}
+module.exports = function(obj) {
+  if (typeof obj === 'object' &&
+      !Array.isArray(obj)
+  ) {
+    return compiler(obj)
   }
 
-  return generate_module(compileString);
+  return compiler()(obj)
 }

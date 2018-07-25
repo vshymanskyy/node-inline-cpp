@@ -1,16 +1,19 @@
-const compile = require('../');
+const InlineCPP = require('../');
 
-const Hello = compile `
+// Tagged template with default options
+const hello = InlineCPP `
   String func(const CallbackInfo& info) {
     return String::New(info.Env(), "Hello");
   }
 `
 
-const World = compile `
+// Create a compiler with some custom options to node-gyp
+const customCPP = InlineCPP({ "defines": [`SOME_MESSAGE="World!"`] });
+
+const world = customCPP(`
   String func(const CallbackInfo& info) {
-    return String::New(info.Env(), "World!");
+    return String::New(info.Env(), SOME_MESSAGE);
   }
-`
+`)
 
-console.log(Hello(), World())
-
+console.log(hello(), world())

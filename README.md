@@ -18,30 +18,26 @@ or
 npm install -g inline-cpp
 ```
 
+Was tested on Linux and Windows. MacOS should also work.
+
 ## Usage
 
 ```js
 // test.js
 const compile = require('inline-cpp');
 
-const Hello = compile `
+const hello = compile `
   String func(const CallbackInfo& info) {
-    return String::New(info.Env(), "Hello");
+    return String::New(info.Env(), "Hello world from C++!");
   }
 `
 
-const World = compile `
-  String func(const CallbackInfo& info) {
-    return String::New(info.Env(), "World!");
-  }
-`
-
-console.log(Hello(), World())
+console.log(hello())
 ```
 Now run it:
 ```sh
 ➜ node test.js
-Hello World!
+Hello world from C++!
 ```
 
 The first time you run the script, it takes longer time to execute.  
@@ -50,6 +46,27 @@ The next time you run the script, it will reuse previous build results (unless y
 
 For more C++ code examples, see [node-addon-api](https://github.com/nodejs/node-addon-api#examples)
 
+## API
+
+`inline-cpp` supports several invocation methods.
+
+Pass some code as string to build it with default options.
+```js
+const InlineCPP = require('inline-cpp');
+InlineCPP('code')
+```
+
+You can also pass code using [tagged template syntax](https://developers.google.com/web/updates/2015/01/ES6-Template-Strings#tagged_templates).
+```js
+InlineCPP `code`
+```
+
+Pass an object to create a new compiler with custom options.  
+Options will get passed to `node-gyp` target.  
+```js
+const customCompiler = InlineCPP({ ... })
+```
+
 ## Disclaimer
 
 This is just a prototype. I created this to check the general concept.  
@@ -57,11 +74,11 @@ You're welcome to contribute! Here are some ideas:
 
 - [ ] Use node-gyp directly, instead of invoking `node node-gyp.js`
 - [ ] Improve error handling/reporting
-- [ ] Parse/Find all finctions in the block of code, add them to exports
+- [ ] Parse/Find all functions in the block of code, add them to exports
 - [ ] Create advanced usage examples
 - [ ] Cleanup unused modules from cache periodically
 - [ ] ...
 
 ## Debugging
 
-You can enable some basic debug output by setting env. variable: `DEBUG=inline-cpp`
+You can enable debug output by setting env. variable: `DEBUG=inline-cpp`
