@@ -12,12 +12,16 @@ function findBuildDeps() {
   if (nodeAddon && nodeGyp) return;
 
   nodeAddon = require.resolve('node-addon-api');
+  nodeAddon = findParentDir.sync(nodeAddon, 'package.json');
+
   nodeGyp = require.resolve('node-gyp');
   nodeGyp = findParentDir.sync(nodeGyp, 'package.json');
   nodeGyp = path.join(nodeGyp, 'bin', 'node-gyp.js');
 
   debug('Using node-gyp:', nodeGyp);
-  debug('Using node-addon-api:', findParentDir.sync(nodeAddon, 'package.json'));
+  debug('Using node-addon-api:', nodeAddon);
+  
+  nodeAddon = nodeAddon.replace(/[\\$'"]/g, "\\$&")
 }
 
 function generate_module(code) {
@@ -73,6 +77,9 @@ NODE_API_MODULE(addon, Init)
   debug('Building', modPath);
 
   try {
+    fs.mkdirSync(path.join(paths.cache, '..'));
+  } catch(e) {}
+  try {
     fs.mkdirSync(paths.cache);
   } catch(e) {}
   try {
@@ -82,10 +89,14 @@ NODE_API_MODULE(addon, Init)
   fs.writeFileSync(path.join(modPath, 'module.cpp'), body);
   fs.writeFileSync(path.join(modPath, 'binding.gyp'), JSON.stringify(binding, null, 2));
 
-  execSync(`node "${nodeGyp}" configure --directory="${modPath}"`, {stdio: [null,null,null]})
+  let execOpts = {
+    stdio: (debug.enabled) ? [0,1,2] : [null,null,null]
+  };
+
+  execSync(`node "${nodeGyp}" configure --directory="${modPath}"`, execOpts)
 
   try {
-    execSync(`node "${nodeGyp}" build --directory="${modPath}"`, {stdio: [null,null,null]})
+    execSync(`node "${nodeGyp}" build --directory="${modPath}"`, execOpts)
     return require(modNode).func;
   } catch (e) {
     throw new Error('C++ build failed')

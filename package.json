@@ -1,6 +1,6 @@
 {
   "name": "inline-cpp",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Use inline C++ in your JS",
   "author": "Volodymyr Shymanskyy",
   "license": "MIT",
