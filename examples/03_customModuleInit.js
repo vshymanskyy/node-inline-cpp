@@ -1,5 +1,9 @@
 const InlineCPP = require('../');
 
+// Note: This is just an example.
+// You can actually remove the Init function here,
+// as the auto-generated one is the same.
+
 const mod = InlineCPP(`
   String alice(const CallbackInfo& info) {
     return String::New(info.Env(), "Alice");
