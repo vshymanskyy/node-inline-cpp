@@ -40,12 +40,11 @@ Now run it:
 Hello world from C++!
 ```
 
-The first time you run the script, it takes longer time to execute.  
-For each inline block of code, a native module will be generated, compiled with `node-gyp` and loaded dynamically.  
-The next time you run the script, it will reuse previous build results (unless you change the inline C++ code).  
-If the module `Init` function is not defined, it is generated as well.  
+The first time you run the script, it takes longer to execute. For each inline block of code, a native module will be generated, compiled with `node-gyp` and loaded dynamically. If the module `Init` function is not defined, it is generated as well.  
+The next time you run the script, it will reuse previously generated module, so it will run instantly (unless you change the inline C++ code).  
 
-For more C++ code examples, see [node-addon-api](https://github.com/nodejs/node-addon-api#examples)
+For more C++ code examples, see [node-addon-api](https://github.com/nodejs/node-addon-api#examples)  
+For more `inline-cpp` API examples, see [examples on github](https://github.com/vshymanskyy/node-inline-cpp/tree/master/examples)
 
 ## API
 
