@@ -1,6 +1,6 @@
 {
   "name": "inline-cpp",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Use inline C++ in your JS",
   "author": "Volodymyr Shymanskyy",
   "license": "MIT",
@@ -20,6 +20,7 @@
     "inline",
     "C++",
     "cpp",
+    "native",
     "NAPI"
   ],
   "repository": {

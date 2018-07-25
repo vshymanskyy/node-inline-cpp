@@ -42,7 +42,8 @@ Hello world from C++!
 
 The first time you run the script, it takes longer time to execute.  
 For each inline block of code, a native module will be generated, compiled with `node-gyp` and loaded dynamically.  
-The next time you run the script, it will reuse previous build results (unless you change the inline C++ code). The build results are cached.  
+The next time you run the script, it will reuse previous build results (unless you change the inline C++ code).  
+If the module `Init` function is not defined, it is generated as well.  
 
 For more C++ code examples, see [node-addon-api](https://github.com/nodejs/node-addon-api#examples)
 
@@ -67,14 +68,17 @@ Options will get passed to `node-gyp` target.
 const customCompiler = InlineCPP({ ... })
 ```
 
+If the code block only contains a single function, the compiler returns the function.  
+If it contains multiple functions or custom `Init`, the module itself is returned.
+
 ## Disclaimer
 
 This is just a prototype. I created this to check the general concept.  
 You're welcome to contribute! Here are some ideas:
 
+- [x] Parse/Find all functions in the block of code, add them to exports
 - [ ] Use node-gyp directly, instead of invoking `node node-gyp.js`
 - [ ] Improve error handling/reporting
-- [ ] Parse/Find all functions in the block of code, add them to exports
 - [ ] Create advanced usage examples
 - [ ] Cleanup unused modules from cache periodically
 - [ ] ...

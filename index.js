@@ -39,15 +39,58 @@ function generateModule(code, opts) {
 
   opts = opts || {};
 
-  // Detect if init code needs to be included
-  let init = code.includes("Object Init(") ? "" :
-`
-Object Init(Env env, Object exports) {
-  exports.Set("func", Function::New(env, func));
+  code = code.trim();
+
+  // The stripped code is only used for some auto-detection, it is not actually compiled!
+  const strippedCode = ' ' + code
+    .replace(/,/g, ' , ')
+    .replace(/\(/g, ' ( ')
+    .replace(/\)/g, ' ) ')
+    .replace(/{/g, ' { ')
+    .replace(/}/g, ' } ')
+    .replace(/\s\s+/g, ' ') + ' ';
   
-  return exports;
-}
-`;
+  // Find all function declarations
+  let funcsRe = /(([a-zA-Z_][\w:]*)\s+([a-zA-Z_]\w*)\s*\(\s*((?:[a-zA-Z0-9_:&\*,\s])*)\s*\))\s*{/gm;
+  let m;
+  let funcs = [];
+  let funcSingle, funcInit;
+  
+  while ((m = funcsRe.exec(strippedCode)) !== null) {
+    // This is necessary to avoid infinite loops with zero-width matches
+    if (m.index === funcsRe.lastIndex) {
+      funcsRe.lastIndex++;
+    }
+    const func = {
+      signature: m[1],
+      name: m[3],
+      returns: m[2],
+      arguments: m[4]
+    }
+    debug('Function:', func.signature);
+
+    if (func.name === 'Init') {
+      funcInit = func;
+    } else {
+      funcs.push(func);
+    }
+  }
+
+  if (funcs.length === 1) funcSingle = funcs[0];
+
+  let init = '';
+
+  // If init function is not provided, generate it
+  if (!funcInit) {
+    init = 'Object Init(Env env, Object exports) {\n';
+
+    for (let f of funcs) {
+      init += `  exports.Set("${f.name}", Function::New(env, ${f.name}));\n`;
+    }
+
+    init += '  return exports;\n'
+    init += '}\n';
+  }
 
   let body =
 `
@@ -66,16 +109,19 @@ NODE_API_MODULE(addon, Init)
   const modPath = path.join(paths.cache, modName);
   const modNode = path.join(modPath, 'build', 'Release', modName+'.node');
 
+  // If the same hash exists, try loading it
   if (fs.existsSync(modNode)) {
     debug('Loading cached', modPath);
     try {
-      if (init) {
-        return require(modNode).func;
+      if (funcSingle && !funcInit) {
+        return require(modNode)[funcSingle.name];
       } else {
         return require(modNode);
       }
     } catch(e) {}
   }
+
+  // Ok no luck, let's build it...
 
   findBuildDeps();
 
@@ -132,8 +178,8 @@ NODE_API_MODULE(addon, Init)
 
   try {
     execSync(`node "${nodeGyp}" build --directory="${modPath}"`, execOpts)
-    if (init) {
-      return require(modNode).func;
+    if (funcSingle && !funcInit) {
+      return require(modNode)[funcSingle.name];
     } else {
       return require(modNode);
     }
@@ -164,6 +210,7 @@ function compiler(opts) {
     throw new Error('Wrong arguments for inline-cpp')
   }
 }
+
 module.exports = function(obj) {
   if (typeof obj === 'object' &&
       !Array.isArray(obj)
