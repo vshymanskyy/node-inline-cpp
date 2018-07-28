@@ -3,7 +3,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/vshymanskyy/node-inline-cpp.svg)](https://github.com/vshymanskyy/node-inline-cpp/issues)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vshymanskyy/node-inline-cpp)
 
-[![NPM](https://nodei.co/npm/inline-cpp.png)](https://nodei.co/npm/inline-cpp/)
+[![NPM](https://nodei.co/npm/inline-cpp.svg)](https://nodei.co/npm/inline-cpp/)
 
 # inline-cpp
 Inline C++ with Node.js
