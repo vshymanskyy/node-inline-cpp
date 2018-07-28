@@ -8,6 +8,18 @@
 # inline-cpp
 Inline C++ with Node.js
 
+**Works on:** 
+<img src="https://cdn.rawgit.com/simple-icons/simple-icons/develop/icons/linux.svg" width="18" height="18" /> Linux,
+<img src="https://cdn.rawgit.com/simple-icons/simple-icons/develop/icons/windows.svg" width="18" height="18" /> Windows,
+<img src="https://cdn.rawgit.com/simple-icons/simple-icons/develop/icons/apple.svg" width="18" height="18" /> MacOS.
+
+**Purpose:**
+- Simplify native module prototyping. Enable native code in Node.js REPL.
+- Allow JS scripts to generate C++ code and run it dynamically.
+- Popularise NAPI usage and `node-addon-api`.
+- This is **NOT** intended to be used as native module replacement!  
+If you want to publish a native module, please package it as required by `node-gyp`.
+
 ## Installation
 
 ```sh
@@ -17,8 +29,6 @@ or install it globally (it works with Node.js REPL):
 ```sh
 npm install -g inline-cpp
 ```
-
-Was tested on Linux and Windows. MacOS should also work.
 
 ## Usage
 
