@@ -1,6 +1,6 @@
 {
   "name": "inline-cpp",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Use inline C++ in your JS",
   "author": "Volodymyr Shymanskyy",
   "license": "MIT",
@@ -12,6 +12,7 @@
     "debug": "^3.1.0",
     "env-paths": "^1.0.0",
     "find-parent-dir": "^0.3.0",
+    "fs-extra": "^7.0.0",
     "lodash": "^4.17.10",
     "node-addon-api": "^1.4.0",
     "node-gyp": "^3.7.0"

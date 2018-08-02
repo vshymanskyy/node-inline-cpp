@@ -1,5 +1,5 @@
 const os = require('os');
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 const crypto = require('crypto');
 const { execSync } = require('child_process');
@@ -107,7 +107,7 @@ NODE_API_MODULE(addon, Init)
   const modName = 'm_' + crypto.createHash('sha1').update(JSON.stringify(opts)).update(body).digest("hex");
 
   const modPath = path.join(paths.cache, modName);
-  const modNode = path.join(modPath, 'build', 'Release', modName+'.node');
+  const modNode = path.join(modPath, modName+'.node');
 
   // If the same hash exists, try loading it
   if (fs.existsSync(modNode)) {
@@ -157,18 +157,10 @@ NODE_API_MODULE(addon, Init)
 
   debug('Building', modPath);
 
-  try {
-    fs.mkdirSync(path.join(paths.cache, '..'));
-  } catch(e) {}
-  try {
-    fs.mkdirSync(paths.cache);
-  } catch(e) {}
-  try {
-    fs.mkdirSync(modPath);
-  } catch(e) {}
+  fs.ensureDirSync(modPath);
 
   fs.writeFileSync(path.join(modPath, 'module.cpp'), body);
-  fs.writeFileSync(path.join(modPath, 'binding.gyp'), JSON.stringify(binding, null, 2));
+  fs.writeJsonSync(path.join(modPath, 'binding.gyp'), binding, { spaces: 2 });
 
   let execOpts = {
     stdio: (debug.enabled) ? [0,1,2] : [null,null,null]
@@ -178,6 +170,10 @@ NODE_API_MODULE(addon, Init)
 
   try {
     execSync(`node "${nodeGyp}" build --directory="${modPath}"`, execOpts)
+
+    fs.renameSync(path.join(modPath, 'build', 'Release', modName+'.node'), modNode)
+    fs.removeSync(path.join(modPath, 'build'))
+
     if (funcSingle && !funcInit) {
       return require(modNode)[funcSingle.name];
     } else {
